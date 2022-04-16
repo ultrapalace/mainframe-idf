@@ -55,7 +55,8 @@ tusb_desc_strarray_device_t descriptor_str_tinyusb = {
     "123456",             // 3: Serials, should use chip ID
     "TinyUSB CDC",        // 4: CDC Interface
     "TinyUSB MSC",        // 5: MSC Interface
-    "TinyUSB HID"         // 6: HID
+    "TinyUSB HID",        // 6: HID
+    "TinyUSB MIDI"        // 7: MIDI
 };
 /* End of TinyUSB default */
 
@@ -125,6 +126,12 @@ tusb_desc_strarray_device_t descriptor_str_kconfig = {
     "",
 #endif
 
+#if CONFIG_TINYUSB_MIDI_ENABLED
+    CONFIG_TINYUSB_DESC_MIDI_STRING           // 7: MIDI
+#else
+    "",
+#endif
+
 };
 
 //------------- HID Report Descriptor -------------//
@@ -155,16 +162,24 @@ enum {
     ITF_NUM_HID,
 #   endif
 
+#   if CFG_TUD_MIDI
+    ITF_NUM_MIDI,
+    ITF_NUM_MIDI_STREAMING,
+#   endif
+
     ITF_NUM_TOTAL
 };
 
 enum {
     TUSB_DESC_TOTAL_LEN = TUD_CONFIG_DESC_LEN + CFG_TUD_CDC * TUD_CDC_DESC_LEN + CFG_TUD_MSC * TUD_MSC_DESC_LEN +
-                       CFG_TUD_HID * TUD_HID_DESC_LEN
+                       CFG_TUD_HID * TUD_HID_DESC_LEN + CFG_TUD_MIDI * TUD_MIDI_DESC_LEN
 };
 
 #define EPNUM_MSC ((CFG_TUD_CDC * 2) + 1)
 #define EPNUM_HID (EPNUM_MSC + 1)
+#define EPNUM_VENDOR (EPNUM_HID + 1)
+#define EPNUM_MIDI_IN (EPNUM_VENDOR + 1)
+#define EPNUM_MIDI_OUT EPNUM_MIDI_IN
 
 #if CFG_TUD_HID //HID Report Descriptor
 uint8_t const desc_hid_report[] = {
@@ -195,6 +210,11 @@ uint8_t const descriptor_cfg_kconfig[] = {
 #   if CFG_TUD_HID
     // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
     TUD_HID_DESCRIPTOR(ITF_NUM_HID, 6, HID_PROTOCOL_NONE, sizeof(desc_hid_report), 0x80 | EPNUM_HID, 16, 10)
+#   endif
+
+#   if CFG_TUD_MIDI
+    // Interface number, string index, EP Out & EP In address, EP size
+    TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI_OUT, (0x80 | EPNUM_MIDI_IN), 64) // highspeed 512
 #   endif
 };
 
