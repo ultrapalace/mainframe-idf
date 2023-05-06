@@ -170,7 +170,7 @@ esp_err_t IRAM_ATTR esp_timer_start_periodic(esp_timer_handle_t timer, uint64_t 
     if (!is_initialized() || timer_armed(timer)) {
         return ESP_ERR_INVALID_STATE;
     }
-    period_us = MAX(period_us, esp_timer_impl_get_min_period_us());
+    // period_us = MAX(period_us, esp_timer_impl_get_min_period_us());
     int64_t alarm = esp_timer_get_time() + period_us;
     esp_timer_dispatch_t dispatch_method = timer->flags & FL_ISR_DISPATCH_METHOD;
     timer_list_lock(dispatch_method);
